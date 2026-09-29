@@ -206,25 +206,21 @@ public final class NodeRunner {
             return setupFailed("Could not write files to " + runtimeDir + ": " + e.getMessage());
         }
 
-        String nodeCmd = s.nodePath();
-        String versionOut = captureOutput(List.of(nodeCmd, "--version"));
-        if (versionOut == null) {
-            return setupFailed("Could not run \"" + nodeCmd + "\". Install Node.js 18.20 or newer "
-                    + "(https://nodejs.org) or set plugin.node-path in config.yml.");
-        }
-        if (!nodeVersionOk(versionOut)) {
-            return setupFailed("Node.js " + versionOut.trim() + " is too old. Friend Connect needs 18.20 or newer.");
-        }
-        if (stopRequested) return Result.STOPPED;
-
-        if (!ensureDependencies(s)) {
+        Toolchain tc = resolveToolchain(s);
+        if (tc == null) {
             return stopRequested ? Result.STOPPED : Result.SETUP_FAILED;
         }
         if (stopRequested) return Result.STOPPED;
 
-        plugin.getLogger().info("Starting Friend Connect (Node " + versionOut.trim() + ")...");
+        if (!ensureDependencies(s, tc)) {
+            return stopRequested ? Result.STOPPED : Result.SETUP_FAILED;
+        }
+        if (stopRequested) return Result.STOPPED;
 
-        ProcessBuilder pb = new ProcessBuilder(nodeCmd, "dist/main.js", "lib/config.json");
+        plugin.getLogger().info("Starting Friend Connect (Node " + tc.version() + ")...");
+
+        ProcessBuilder pb = new ProcessBuilder(tc.node(), "dist/main.js", "lib/config.json");
+        tc.applyPath(pb);
         pb.directory(runtimeDir.toFile());
         pb.redirectErrorStream(true);
         pb.environment().put("NODE_NO_WARNINGS", "1");
@@ -349,6 +345,80 @@ public final class NodeRunner {
                 .append(Component.text(authCode, NamedTextColor.GOLD)));
     }
 
+    // ------------------------------------------------------------------ Node.js toolchain
+
+    /** The node + npm commands to use (system-wide install, or the private downloaded copy). */
+    private record Toolchain(String node, List<String> npmBase, Path extraPath, String version) {
+        List<String> npm(String... args) {
+            List<String> cmd = new java.util.ArrayList<>(npmBase);
+            cmd.addAll(List.of(args));
+            return cmd;
+        }
+
+        /** Makes the chosen node findable by npm's install scripts. */
+        void applyPath(ProcessBuilder pb) {
+            if (extraPath == null) return;
+            String key = WINDOWS ? "Path" : "PATH";
+            for (String k : pb.environment().keySet()) {
+                if (k.equalsIgnoreCase("PATH")) {
+                    key = k;
+                    break;
+                }
+            }
+            String old = pb.environment().getOrDefault(key, "");
+            pb.environment().put(key, extraPath + java.io.File.pathSeparator + old);
+        }
+    }
+
+    /** Uses the system Node.js if it works, otherwise (optionally) downloads a private copy. */
+    private Toolchain resolveToolchain(Settings s) {
+        String problem;
+        String versionOut = captureOutput(List.of(s.nodePath(), "--version"));
+        if (versionOut != null && nodeVersionOk(versionOut)) {
+            String npm = s.npmPath();
+            if (WINDOWS && !npm.contains("/") && !npm.contains("\\")
+                    && !npm.toLowerCase(Locale.ROOT).endsWith(".cmd")) {
+                npm = npm + ".cmd";
+            }
+            return new Toolchain(s.nodePath(), List.of(npm), null, versionOut.trim());
+        }
+        if (versionOut == null) {
+            problem = "Could not run \"" + s.nodePath() + "\" (Node.js is not installed here).";
+        } else {
+            problem = "Node.js " + versionOut.trim() + " is too old (18.20 or newer is needed).";
+        }
+
+        if (!s.autoDownloadNode()) {
+            fail(problem + " Install Node.js, set plugin.node-path, or set plugin.auto-download-node: true.");
+            return null;
+        }
+
+        plugin.getLogger().info(problem + " Using a private copy instead.");
+        try {
+            LocalNode.Paths paths = new LocalNode(plugin.getDataFolder().toPath().resolve("node-runtime"),
+                    plugin.getLogger()).ensure();
+            String node = paths.node().toAbsolutePath().toString();
+            String check = captureOutput(List.of(node, "--version"));
+            if (check == null) {
+                fail("The downloaded Node.js could not be started on this system (" + node + "). "
+                        + "If your host blocks running downloaded programs or uses Alpine/musl Linux, "
+                        + "ask them to install Node.js.");
+                return null;
+            }
+            return new Toolchain(node, List.of(node, paths.npmCli().toAbsolutePath().toString()),
+                    paths.node().toAbsolutePath().getParent(), check.trim());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (IOException e) {
+            if (!stopRequested) {
+                fail("Could not download Node.js automatically: " + e.getMessage()
+                        + ". The server needs access to registry.npmjs.org, or install Node.js manually.");
+            }
+            return null;
+        }
+    }
+
     // ------------------------------------------------------------------ setup helpers
 
     private void prepareRuntime(Settings s) throws IOException {
@@ -375,7 +445,7 @@ public final class NodeRunner {
         Files.writeString(runtimeDir.resolve("lib/config.json"), gson.toJson(json), StandardCharsets.UTF_8);
     }
 
-    private boolean ensureDependencies(Settings s) {
+    private boolean ensureDependencies(Settings s, Toolchain tc) {
         Path marker = runtimeDir.resolve(".deps-installed");
         String wanted;
         try {
@@ -401,22 +471,17 @@ public final class NodeRunner {
 
         state = State.INSTALLING;
         plugin.getLogger().info("Installing Friend Connect dependencies (first start only, may take a minute)...");
-        String npm = s.npmPath();
-        if (WINDOWS && !npm.contains("/") && !npm.contains("\\") && !npm.toLowerCase(Locale.ROOT).endsWith(".cmd")) {
-            npm = npm + ".cmd";
-        }
-
         // --ignore-scripts skips raknet-native's compile step (not needed);
         // node-datachannel is then rebuilt on its own because it needs to fetch its prebuilt binary.
-        int code = runAndLog(List.of(npm, "install", "--ignore-scripts", "--omit=dev", "--no-audit",
-                "--no-fund", "--no-package-lock"), s);
+        int code = runAndLog(tc.npm("install", "--ignore-scripts", "--omit=dev", "--no-audit",
+                "--no-fund", "--no-package-lock"), tc, s);
         if (code == 0 && !stopRequested) {
-            code = runAndLog(List.of(npm, "rebuild", "node-datachannel"), s);
+            code = runAndLog(tc.npm("rebuild", "node-datachannel"), tc, s);
         }
         if (stopRequested) return false;
         if (code != 0) {
             fail("Installing dependencies failed (exit code " + code + "). Check that this machine has internet "
-                    + "access to registry.npmjs.org and github.com, and that npm-path is correct.");
+                    + "access to registry.npmjs.org and github.com.");
             return false;
         }
         try {
@@ -428,8 +493,9 @@ public final class NodeRunner {
     }
 
     /** Runs a command in the runtime dir, logging its output. Returns the exit code, or -1 on failure. */
-    private int runAndLog(List<String> cmd, Settings s) {
+    private int runAndLog(List<String> cmd, Toolchain tc, Settings s) {
         ProcessBuilder pb = new ProcessBuilder(cmd);
+        tc.applyPath(pb);
         pb.directory(runtimeDir.toFile());
         pb.redirectErrorStream(true);
         Process p;

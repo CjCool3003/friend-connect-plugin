@@ -8,7 +8,7 @@
 #
 #  You need:
 #    1. Geyser (or any Bedrock endpoint) reachable from the internet
-#    2. Node.js 18.20 or newer installed on this machine
+#    2. Node.js 18.20 or newer - installed automatically if missing
 #    3. A spare Microsoft/Xbox account to act as the host
 #
 #  First start: watch the console for a line like
@@ -60,6 +60,10 @@ plugin:
   auto-start: true
   # Run "npm install" automatically the first time (needs internet)
   auto-install-dependencies: true
+  # If Node.js is not installed (e.g. on a game-panel host where you cannot
+  # install software), download a private copy into plugins/FriendConnect/node-runtime
+  # (about 50 MB, one time). Not used if a working Node.js is already found.
+  auto-download-node: true
   # Path to node / npm if they are not on the server's PATH,
   # e.g. "/opt/node/bin/node" or "C:/Program Files/nodejs/node.exe"
   node-path: "node"

@@ -10,7 +10,7 @@ public record Settings(
         String ip, int port,
         String hostName, String levelName, String worldVersion, int maxPlayers,
         String joinability, boolean autoAcceptFriends, boolean autoAddFriends, boolean updatePresence,
-        boolean autoInstall, String nodePath, String npmPath,
+        boolean autoInstall, boolean autoDownloadNode, String nodePath, String npmPath,
         boolean autoRestart, int restartDelaySeconds, int maxRestartAttempts,
         boolean notifyAdmins, boolean debug) {
 
@@ -29,6 +29,7 @@ public record Settings(
                 c.getBoolean("friend-connect.auto-add-friends", true),
                 c.getBoolean("friend-connect.update-presence", true),
                 c.getBoolean("plugin.auto-install-dependencies", true),
+                c.getBoolean("plugin.auto-download-node", true),
                 c.getString("plugin.node-path", "node"),
                 c.getString("plugin.npm-path", "npm"),
                 c.getBoolean("plugin.auto-restart", true),

@@ -9,7 +9,8 @@ as a child process, restarts it if it crashes, and stops it when the server stop
 
 ## Requirements
 - Paper 1.20+ (Java 17+; Paper 1.20.5+ needs Java 21)
-- **Node.js 18.20 or newer** on the same machine (`node --version`)
+- **Node.js 18.20 or newer** - optional: if it is missing (common on game-panel hosts), the plugin
+  downloads a private copy into `plugins/FriendConnect/node-runtime` (~50 MB download, ~140 MB on disk)
 - **Geyser** (Bedrock support) on this server or your proxy - FriendConnect only handles the
   friends list and the redirect; Geyser is what lets Bedrock clients actually play
 - A **spare Microsoft account** to act as the host (do not use your personal account)
@@ -41,7 +42,11 @@ the included workflow builds the jar for you (Actions > Build > Artifacts).
 | `/fc restart` (or `reload`) | reload config.yml and restart |
 
 ## Troubleshooting
-- **"Could not run node"** - install Node.js, or set `plugin.node-path` (common on panel hosts).
+- **"Could not download Node.js automatically"** - the server needs outbound access to
+  `registry.npmjs.org` (and `github.com` for dependencies). Otherwise install Node.js yourself and set
+  `plugin.node-path`.
+- **"The downloaded Node.js could not be started"** - your host blocks running downloaded programs, or
+  uses Alpine (musl) Linux. Ask the host to install Node.js.
 - **Install failed** - the machine needs internet access to `registry.npmjs.org` and `github.com`.
   Set `plugin.debug: true` to see full npm output.
 - **Players see the server but can't connect** - `server.ip` must be your *public* address and the
