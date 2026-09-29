@@ -1,0 +1,17 @@
+name: FriendConnect
+version: '${project.version}'
+main: dev.friendconnect.FriendConnectPlugin
+api-version: '1.20'
+description: Self-hosted Bedrock Friend Connect - lets console/mobile players join from the friends list.
+authors: [FriendConnect]
+website: https://github.com/Espryra/friend-connect
+commands:
+  friendconnect:
+    description: Manage Friend Connect
+    usage: /<command> <status|start|stop|restart|reload|auth>
+    aliases: [fc]
+    permission: friendconnect.admin
+permissions:
+  friendconnect.admin:
+    description: Manage Friend Connect and receive sign-in notifications
+    default: op

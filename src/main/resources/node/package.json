@@ -1,0 +1,10 @@
+{
+  "name": "friendconnect-runtime",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "bedrock-portal": "~2.7.0",
+    "bedrock-protocol": "^3.55.0",
+    "prismarine-auth": "^3.1.0"
+  }
+}

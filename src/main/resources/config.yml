@@ -1,0 +1,75 @@
+# =====================================================================
+#  FriendConnect  -  config.yml
+# =====================================================================
+#  Lets Bedrock players (Xbox, PlayStation, Switch, mobile, Windows)
+#  join your server from the FRIENDS LIST, by adding a Microsoft
+#  "host" account. When they tap the host account's world, they are
+#  redirected to the address below.
+#
+#  You need:
+#    1. Geyser (or any Bedrock endpoint) reachable from the internet
+#    2. Node.js 18.20 or newer installed on this machine
+#    3. A spare Microsoft/Xbox account to act as the host
+#
+#  First start: watch the console for a line like
+#     "Open https://www.microsoft.com/link and enter the code XXXXXXXX"
+#  and sign in with the HOST account. You only do this once.
+#
+#  Only "server.ip" is REQUIRED to change. Everything else has good defaults.
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# 1. WHERE PLAYERS ARE SENT  (REQUIRED)
+# ---------------------------------------------------------------------
+server:
+  # Public address of your BEDROCK endpoint (your Geyser address).
+  # Use a domain or public IP - NOT 127.0.0.1 / localhost.
+  ip: "CHANGE_ME"
+  # Bedrock (UDP) port. Geyser's default is 19132.
+  port: 19132
+
+# ---------------------------------------------------------------------
+# 2. HOW THE WORLD CARD LOOKS in the friends list
+# ---------------------------------------------------------------------
+world:
+  host-name: "My Server"          # bold title
+  level-name: "Tap to join!"      # smaller text under it
+  version: "1.21"                 # cosmetic only
+  max-players: 100                # cosmetic only
+
+# ---------------------------------------------------------------------
+# 3. WHO CAN SEE AND JOIN
+# ---------------------------------------------------------------------
+friend-connect:
+  # invite_only         -> only players you invite
+  # friends_only        -> friends of the host account
+  # friends_of_friends  -> friends and friends-of-friends (recommended)
+  joinability: friends_of_friends
+  # Accept incoming friend requests on the host account automatically
+  auto-accept-friends: true
+  # Follow players back automatically so they can join
+  auto-add-friends: true
+  # Show the host account as "playing Minecraft" in Xbox
+  update-presence: true
+
+# ---------------------------------------------------------------------
+# 4. PLUGIN BEHAVIOUR  (safe to leave as-is)
+# ---------------------------------------------------------------------
+plugin:
+  # Start Friend Connect automatically when the server starts
+  auto-start: true
+  # Run "npm install" automatically the first time (needs internet)
+  auto-install-dependencies: true
+  # Path to node / npm if they are not on the server's PATH,
+  # e.g. "/opt/node/bin/node" or "C:/Program Files/nodejs/node.exe"
+  node-path: "node"
+  npm-path: "npm"
+  # Restart Friend Connect if it crashes
+  auto-restart: true
+  restart-delay-seconds: 30
+  # Give up after this many failed restarts in a row (0 = never give up)
+  max-restart-attempts: 5
+  # Tell online admins (friendconnect.admin) when Microsoft sign-in is needed
+  notify-admins-in-game: true
+  # Print all output from the Node process (useful for troubleshooting)
+  debug: false
