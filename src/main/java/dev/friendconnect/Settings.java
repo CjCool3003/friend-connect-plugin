@@ -8,7 +8,7 @@ import java.util.Set;
 /** Immutable snapshot of config.yml (safe to read from the background thread). */
 public record Settings(
         String ip, int port,
-        String hostName, String levelName, String worldVersion, int maxPlayers,
+        String hostName, String levelName, String worldVersion, int maxPlayers, String imageFile,
         String joinability, boolean autoAcceptFriends, boolean autoAddFriends, boolean updatePresence,
         boolean autoInstall, boolean autoDownloadNode, String nodePath, String npmPath,
         boolean autoRestart, int restartDelaySeconds, int maxRestartAttempts,
@@ -24,6 +24,7 @@ public record Settings(
                 c.getString("world.level-name", "Tap to join!"),
                 c.getString("world.version", "1.21"),
                 c.getInt("world.max-players", 100),
+                c.getString("world.image", "screenshot.jpg").trim(),
                 c.getString("friend-connect.joinability", "friends_of_friends").trim().toLowerCase(Locale.ROOT),
                 c.getBoolean("friend-connect.auto-accept-friends", true),
                 c.getBoolean("friend-connect.auto-add-friends", true),

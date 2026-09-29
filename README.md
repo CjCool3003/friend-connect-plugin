@@ -33,6 +33,14 @@ the included workflow builds the jar for you (Actions > Build > Artifacts).
 5. When the console says `Friend Connect is running as "<gamertag>"`, players add that gamertag
    on Xbox / in Minecraft and join from the Friends tab.
 
+## Custom image
+Drop a JPEG named `screenshot.jpg` into `plugins/FriendConnect/` (best: 1200x675, quality 90) and run
+`/fc restart`. The plugin uploads it as the host account's showcase image using the same Minecraft
+gallery service the game reads from. It only re-uploads when the file changes, and can take a few
+minutes to appear in-game. Change the file name (or turn it off) with `world.image` in config.yml.
+Note: this sets the account's profile/showcase image. Where exactly the game shows it (for example on
+the friends-list card) is decided by Minecraft, so test it.
+
 ## Commands (permission `friendconnect.admin`, default op; alias `/fc`)
 | Command | What it does |
 |---|---|
@@ -64,5 +72,7 @@ To change the script: edit `node/src`, then in `node/` run `npm install` and
 
 ## Credits / license note
 Script based on Espryra/friend-connect, which uses `bedrock-portal` and `prismarine-auth`.
+The custom-image upload follows how [MCXboxBroadcast](https://github.com/MCXboxBroadcast/Broadcaster)
+(GPL-3.0) talks to the Minecraft gallery service; the code here is a separate implementation.
 The upstream repo had no license file when this was made, so check with its author before
 redistributing publicly.

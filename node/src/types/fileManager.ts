@@ -9,4 +9,5 @@ export interface Config {
   updatePresence: boolean;
   worldVersion: string;
   maxPlayers: number;
+  imagePath: string;
 }

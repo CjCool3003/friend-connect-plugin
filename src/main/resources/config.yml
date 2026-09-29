@@ -32,10 +32,15 @@ server:
 # 2. HOW THE WORLD CARD LOOKS in the friends list
 # ---------------------------------------------------------------------
 world:
-  host-name: "My Server"          # bold title
-  level-name: "Tap to join!"      # smaller text under it
+  level-name: "Tap to join!"      # big title on the card
+  host-name: "My Server"          # shown under it as "My Server's world"
   version: "1.21"                 # cosmetic only
   max-players: 100                # cosmetic only
+  # Custom picture for the host account (its showcase image).
+  # Put a JPEG with this name in plugins/FriendConnect/ - best: 1200x675, quality 90.
+  # Uploaded on every start if it changed; can take a few minutes to show in-game.
+  # Leave empty ("") to turn off.
+  image: "screenshot.jpg"
 
 # ---------------------------------------------------------------------
 # 3. WHO CAN SEE AND JOIN

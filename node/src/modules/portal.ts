@@ -1,6 +1,7 @@
 import { BedrockPortal, Joinability, Modules } from "bedrock-portal";
 import { Titles } from "prismarine-auth";
 import FileManager from "../utils/fileManager";
+import Showcase from "./showcase";
 
 const JOINABILITY: Record<string, Joinability> = {
   invite_only: Joinability.InviteOnly,
@@ -76,5 +77,16 @@ export default class Portal {
     console.log(
       `[FC-READY] Friend Connect started: ${this.instance.host.profile?.gamertag}`,
     );
+
+    // Optional custom account image. Runs in the background and never throws.
+    const xuid = this.instance.host.profile?.xuid;
+    if (config.imagePath && xuid) {
+      void Showcase.Apply(
+        this.instance.host.authflow,
+        xuid,
+        config.imagePath,
+        "lib/showcase.json",
+      );
+    }
   }
 }

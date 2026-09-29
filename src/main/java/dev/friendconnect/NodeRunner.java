@@ -42,6 +42,7 @@ public final class NodeRunner {
             "package.json",
             "dist/main.js",
             "dist/modules/portal.js",
+            "dist/modules/showcase.js",
             "dist/types/fileManager.js",
             "dist/utils/fileManager.js"
     };
@@ -309,6 +310,10 @@ public final class NodeRunner {
             plugin.getLogger().info(line);
         } else if (line.startsWith("Player joined")) {
             plugin.getLogger().info(line);
+        } else if (line.startsWith("[FC-IMAGE-WARN]")) {
+            plugin.getLogger().warning("Custom image: " + line.substring("[FC-IMAGE-WARN]".length()).trim());
+        } else if (line.startsWith("[FC-IMAGE]")) {
+            plugin.getLogger().info("Custom image: " + line.substring("[FC-IMAGE]".length()).trim());
         } else if (s.debug()) {
             plugin.getLogger().info("[node] " + line);
         }
@@ -442,6 +447,8 @@ public final class NodeRunner {
         json.put("updatePresence", s.updatePresence());
         json.put("worldVersion", s.worldVersion());
         json.put("maxPlayers", s.maxPlayers());
+        json.put("imagePath", s.imageFile().isBlank() ? ""
+                : plugin.getDataFolder().toPath().resolve(s.imageFile()).toAbsolutePath().toString());
         Files.writeString(runtimeDir.resolve("lib/config.json"), gson.toJson(json), StandardCharsets.UTF_8);
     }
 

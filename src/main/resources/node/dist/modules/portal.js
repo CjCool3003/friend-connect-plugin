@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bedrock_portal_1 = require("bedrock-portal");
 const prismarine_auth_1 = require("prismarine-auth");
 const fileManager_1 = require("../utils/fileManager");
+const showcase_1 = require("./showcase");
 const JOINABILITY = {
     invite_only: bedrock_portal_1.Joinability.InviteOnly,
     friends_only: bedrock_portal_1.Joinability.FriendsOnly,
@@ -60,6 +61,11 @@ class Portal {
         });
         await this.instance.start();
         console.log(`[FC-READY] Friend Connect started: ${this.instance.host.profile?.gamertag}`);
+        // Optional custom account image. Runs in the background and never throws.
+        const xuid = this.instance.host.profile?.xuid;
+        if (config.imagePath && xuid) {
+            void showcase_1.default.Apply(this.instance.host.authflow, xuid, config.imagePath, "lib/showcase.json");
+        }
     }
 }
 exports.default = Portal;
